@@ -1,0 +1,34 @@
+name: IaC Security Scan
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  security_scan:
+    name: Run Checkov and Terrascan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Install Checkov
+        run: |
+          pip install checkov
+
+      - name: Run Checkov Scan
+        run: |
+          checkov -d ./Infra
+
+      - name: Install Terrascan
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/tenable/terrascan/master/install.sh | bash
+
+      - name: Run Terrascan Scan
+        run: |
+          terrascan scan -d ./Infra
