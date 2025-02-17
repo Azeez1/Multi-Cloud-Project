@@ -21,10 +21,3 @@ spec:
       containers:
         - name: myapp
           image: nginx
-          volumeMounts:
-            - name: vault-secrets
-              mountPath: /vault/secrets
-              readOnly: true
-      volumes:
-        - name: vault-secrets
-          emptyDir: {}
