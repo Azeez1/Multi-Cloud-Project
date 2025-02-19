@@ -34,13 +34,14 @@ module "eks" {
   version = "19.10.0"
 
   cluster_name    = "multi-cloud-eks"
-  cluster_version = "1.24"
+  cluster_version = "1.27" # Updated EKS version
   subnet_ids      = module.vpc.private_subnets
   vpc_id          = module.vpc.vpc_id
 
   eks_managed_node_groups = {
     eks_nodes = {
       instance_types   = ["t3.medium"]
+      ami_type        = "AL2_x86_64" # Ensures compatibility
       desired_capacity = 2
       min_size         = 1
       max_size         = 3
