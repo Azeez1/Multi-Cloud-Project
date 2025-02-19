@@ -1,0 +1,62 @@
+name: Deploy Multi-Cloud Infrastructure
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GitHubActionsRole
+        aws-region: us-east-1
+
+    - name: Configure Azure credentials
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v2
+
+    - name: Initialize Terraform
+      run: terraform init
+      working-directory: Infra
+
+    - name: Validate Terraform
+      run: terraform validate
+      working-directory: Infra
+
+    - name: Plan Terraform Changes
+      run: terraform plan -out=tfplan
+      working-directory: Infra
+
+    - name: Apply Terraform (Deploy EKS & AKS)
+      run: terraform apply -auto-approve tfplan
+      working-directory: Infra
+
+    - name: Configure kubectl for AWS EKS
+      run: aws eks update-kubeconfig --region us-east-1 --name multi-cloud-eks
+
+    - name: Configure kubectl for Azure AKS
+      run: az aks get-credentials --resource-group multi-cloud-aks-rg --name multi-cloud-aks
+
+    - name: Deploy Application to AWS EKS
+      run: kubectl apply -f Kubernetes/deployments/myapp-deployment.yaml
+
+    - name: Deploy Application to Azure AKS
+      run: kubectl apply -f Kubernetes/deployments/myapp-deployment.yaml
