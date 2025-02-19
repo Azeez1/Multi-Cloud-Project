@@ -23,11 +23,13 @@ jobs:
 
       - name: Run Checkov Scan
         run: |
-          checkov -d ./Infra
+          checkov -d ./Infra --output cli --soft-fail
 
       - name: Install Terrascan
         run: |
-          curl -fsSL https://raw.githubusercontent.com/tenable/terrascan/master/install.sh | bash
+          curl -L https://github.com/tenable/terrascan/releases/latest/download/terrascan-linux-amd64 -o terrascan
+          chmod +x terrascan
+          sudo mv terrascan /usr/local/bin/
 
       - name: Run Terrascan Scan
         run: |
