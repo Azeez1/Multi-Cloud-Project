@@ -20,12 +20,43 @@ module "vpc" {
   name = "multi-cloud-eks-vpc"
   cidr = "10.0.0.0/16"
 
-  azs             = ["${var.aws_region}a", "${var.aws_region}b"]
+  azs             = ["${var.aws_region}-a", "${var.aws_region}-b"]
   private_subnets = ["10.0.1.0/24", "10.0.2.0/24"]
   public_subnets  = ["10.0.3.0/24", "10.0.4.0/24"]
 
   enable_nat_gateway = true
   enable_vpn_gateway = false
+}
+
+# IAM Role for EKS Worker Nodes
+resource "aws_iam_role" "eks_node_role" {
+  name = "eks-node-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Service = "ec2.amazonaws.com"
+      }
+      Action = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "eks_worker_node" {
+  role       = aws_iam_role.eks_node_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+}
+
+resource "aws_iam_role_policy_attachment" "eks_cni" {
+  role       = aws_iam_role.eks_node_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+}
+
+resource "aws_iam_role_policy_attachment" "ec2_container_registry" {
+  role       = aws_iam_role.eks_node_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
 
 # Create an AWS EKS Cluster
@@ -45,6 +76,7 @@ module "eks" {
       desired_capacity = 2
       min_size         = 1
       max_size         = 3
+      iam_role_arn     = aws_iam_role.eks_node_role.arn
     }
   }
 }
