@@ -50,7 +50,7 @@ module "eks" {
 
 provider "azurerm" {
   features {}
-  subscription_id = 7b3ea5ed-9dca-4650-baaa-47a06c9a3b2f
+  subscription_id = "7b3ea5ed-9dca-4650-baaa-47a06c9a3b2f"
 }
 
 resource "azurerm_resource_group" "rg" {
