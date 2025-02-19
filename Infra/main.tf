@@ -15,13 +15,12 @@ provider "aws" {
 # Create VPC for EKS
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "3.19.0"
-  
+  version = "5.0.0"  # Updated version to fix deprecated arguments
+
   name = "multi-cloud-eks-vpc"
   cidr = "10.0.0.0/16"
 
-  azs = ["${var.aws_region}a", "${var.aws_region}b"]
-
+  azs             = ["${var.aws_region}a", "${var.aws_region}b"]
   private_subnets = ["10.0.1.0/24", "10.0.2.0/24"]
   public_subnets  = ["10.0.3.0/24", "10.0.4.0/24"]
 
@@ -41,14 +40,13 @@ module "eks" {
 
   eks_managed_node_groups = {
     eks_nodes = {
-      instance_types = ["t3.medium"]
+      instance_types   = ["t3.medium"]
       desired_capacity = 2
-      min_size = 1
-      max_size = 3
+      min_size         = 1
+      max_size         = 3
     }
   }
 }
-
 
 provider "azurerm" {
   features {}
@@ -75,4 +73,3 @@ resource "azurerm_kubernetes_cluster" "aks" {
     type = "SystemAssigned"
   }
 }
-
