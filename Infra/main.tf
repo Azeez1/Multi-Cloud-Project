@@ -34,7 +34,7 @@ module "eks" {
   version = "19.10.0"
 
   cluster_name    = "multi-cloud-eks"
-  cluster_version = "1.27" # Updated EKS version
+  cluster_version = "1.26" # Updated EKS version
   subnet_ids      = module.vpc.private_subnets
   vpc_id          = module.vpc.vpc_id
 
