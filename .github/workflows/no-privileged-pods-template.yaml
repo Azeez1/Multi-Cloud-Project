@@ -1,0 +1,36 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8sprivilegedcontainer
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sPrivilegedContainer
+      validation:
+        openAPIV3Schema:
+          properties:
+            message:
+              type: string
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8sprivilegedcontainer
+
+        violation[{"msg": msg}] {
+            input.review.object.spec.containers[_].securityContext.privileged == true
+            msg := "Privileged containers are not allowed"
+        }
+
+---
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sPrivilegedContainer
+metadata:
+  name: no-privileged-pods
+spec:
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+  parameters:
+    message: "Privileged containers are not allowed in this cluster"
